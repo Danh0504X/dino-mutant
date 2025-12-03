@@ -26,4 +26,7 @@ public interface IDaoPlayer {
     
     // Xóa người chơi theo tên
     void deletePlayer(String name);
+    
+    // Cập nhật điểm hàng loạt (Batch Update)
+    void batchUpdatePlayers(List<Player> players);
 }

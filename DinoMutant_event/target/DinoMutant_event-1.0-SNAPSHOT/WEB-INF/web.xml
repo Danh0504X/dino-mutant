@@ -8,4 +8,14 @@
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
+    
+    <!-- Explicitly register UpdateScoresServlet -->
+    <servlet>
+        <servlet-name>UpdateScoresServlet</servlet-name>
+        <servlet-class>controller.UpdateScoresServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UpdateScoresServlet</servlet-name>
+        <url-pattern>/updateScores</url-pattern>
+    </servlet-mapping>
 </web-app>

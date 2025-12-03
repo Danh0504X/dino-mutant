@@ -3,6 +3,7 @@ controller\RequestActionServlet.class
 AdminDAO\IAdminDAO.class
 dinomutant\JakartaRestConfiguration.class
 model\HistoryUpdate.class
+controller\LotteryResetServlet.class
 controller\LotteryServlet.class
 SettingsDAO\ISettingsDAO.class
 AdminDAO\AdminDAO.class

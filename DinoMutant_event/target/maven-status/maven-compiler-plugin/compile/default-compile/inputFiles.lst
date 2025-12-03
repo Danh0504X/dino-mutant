@@ -14,6 +14,7 @@ F:\project\DinoMutant_project\DinoMutant_event\src\main\java\dinomutant\resource
 F:\project\DinoMutant_project\DinoMutant_event\src\main\java\model\Player.java
 F:\project\DinoMutant_project\DinoMutant_event\src\main\java\HistoryDAO\HistoryUpdateDAO.java
 F:\project\DinoMutant_project\DinoMutant_event\src\main\java\LotteryDAO\LotteryDAO.java
+F:\project\DinoMutant_project\DinoMutant_event\src\main\java\controller\UpdateScoresServlet.java
 F:\project\DinoMutant_project\DinoMutant_event\src\main\java\model\ScoreRequest.java
 F:\project\DinoMutant_project\DinoMutant_event\src\main\java\controller\LotteryServlet.java
 F:\project\DinoMutant_project\DinoMutant_event\src\main\java\AdminDAO\IAdminDAO.java

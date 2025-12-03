@@ -28,7 +28,14 @@
         .inline { display:inline; }
         .muted { color:#93a3b8; font-size:12px; }
         .row { margin: 6px 0; }
+        .score-input:focus { outline: 2px solid var(--accent); border-color: var(--accent) !important; }
+        .btn-add-100 { cursor: pointer; border: none; color: white; transition: all 0.2s; }
+        .btn-add-100:hover { transform: scale(1.05); filter: brightness(1.1); }
+        .btn-add-100:active { transform: scale(0.95); }
+        #saveStatus { color: #10b981; }
+        #saveStatus.error { color: #ef4444; }
     </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -44,6 +51,51 @@
     <c:if test="${param.error == 'player_not_found'}"><p style="color:#ef4444;">Player not found.</p></c:if>
     <c:if test="${param.req_approved == '1'}"><p style="color:#10b981;">Request approved.</p></c:if>
     <c:if test="${param.req_denied == '1'}"><p style="color:#f59e0b;">Request denied.</p></c:if>
+
+    <!-- Bảng quản lý điểm hàng loạt -->
+    <div class="card">
+        <h3>Quản Lý Điểm Hàng Loạt</h3>
+        <div style="margin-bottom: 15px;">
+            <button type="button" id="saveAllBtn" class="btn" style="background: linear-gradient(135deg, #10b981, #059669);">
+                💾 Lưu Tất Cả Điểm
+            </button>
+            <span id="saveStatus" style="margin-left: 15px; font-weight: 600;"></span>
+        </div>
+        <table id="playersTable">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">#</th>
+                    <th>Tên Người Chơi</th>
+                    <th style="width: 200px;">Điểm</th>
+                    <th style="width: 120px;">Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <c:forEach var="p" items="${players}" varStatus="status">
+                    <tr data-player-id="${p.id}">
+                        <td>${status.index + 1}</td>
+                        <td><c:out value="${p.name}" /></td>
+                        <td>
+                            <input type="number" 
+                                   class="score-input" 
+                                   data-player-id="${p.id}"
+                                   data-original-score="${p.score}"
+                                   value="${p.score}" 
+                                   style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #1f2937; background: #0b1220; color: #e2e8f0; text-align: center; font-weight: 600;" />
+                        </td>
+                        <td>
+                            <button type="button" 
+                                    class="btn-add-100" 
+                                    data-player-id="${p.id}"
+                                    style="padding: 6px 12px; font-size: 13px; background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                                +100
+                            </button>
+                        </td>
+                    </tr>
+                </c:forEach>
+            </tbody>
+        </table>
+    </div>
 
     <div class="card">
         <h3>Update Player</h3>
@@ -166,5 +218,139 @@
         </table>
     </div>
 </div>
+
+<script>
+$(document).ready(function() {
+    // Xử lý nút +100 điểm cho mỗi player
+    $('.btn-add-100').on('click', function() {
+        var playerId = $(this).data('player-id');
+        var $input = $('.score-input[data-player-id="' + playerId + '"]');
+        var currentScore = parseInt($input.val()) || 0;
+        var newScore = currentScore + 100;
+        $input.val(newScore);
+        
+        // Highlight input để người dùng biết đã thay đổi
+        $input.css('background', '#1e3a5f');
+        setTimeout(function() {
+            $input.css('background', '#0b1220');
+        }, 300);
+    });
+    
+    // Xử lý nút Lưu Tất Cả Điểm
+    $('#saveAllBtn').on('click', function() {
+        var $btn = $(this);
+        var $status = $('#saveStatus');
+        
+        // Disable button và hiển thị loading
+        $btn.prop('disabled', true);
+        $btn.text('⏳ Đang lưu...');
+        $status.text('').removeClass('error');
+        
+        // Thu thập dữ liệu từ tất cả input
+        var playersData = [];
+        $('.score-input').each(function() {
+            var playerId = $(this).data('player-id');
+            var newScore = parseInt($(this).val());
+            var originalScore = parseInt($(this).data('original-score'));
+            
+            // Chỉ thêm vào danh sách nếu điểm đã thay đổi
+            if (newScore !== originalScore) {
+                playersData.push({
+                    id: playerId,
+                    score: newScore
+                });
+            }
+        });
+        
+        if (playersData.length === 0) {
+            $status.text('Không có thay đổi nào để lưu.').addClass('error');
+            $btn.prop('disabled', false);
+            $btn.text('💾 Lưu Tất Cả Điểm');
+            return;
+        }
+        
+        // Gửi AJAX request
+        console.log('Sending data:', playersData);
+        var requestUrl = '${pageContext.request.contextPath}/updateScores';
+        console.log('Request URL:', requestUrl);
+        
+        $.ajax({
+            url: requestUrl,
+            type: 'POST',
+            contentType: 'application/json; charset=UTF-8',
+            dataType: 'json',
+            data: JSON.stringify(playersData),
+            success: function(response) {
+                console.log('Response received:', response);
+                if (response && response.status === 'success') {
+                    $status.text('✓ ' + (response.message || 'Lưu thành công!')).css('color', '#10b981');
+                    
+                    // Cập nhật original-score cho các input đã lưu
+                    playersData.forEach(function(player) {
+                        var $input = $('.score-input[data-player-id="' + player.id + '"]');
+                        $input.data('original-score', player.score);
+                    });
+                    
+                    // Reload trang sau 1.5 giây để cập nhật dữ liệu
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    var errorMsg = response && response.message ? response.message : 'Unknown error';
+                    $status.text('✗ Lỗi: ' + errorMsg).addClass('error');
+                    $btn.prop('disabled', false);
+                    $btn.text('💾 Lưu Tất Cả Điểm');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX Error:', {xhr: xhr, status: status, error: error});
+                console.error('Response Text:', xhr.responseText);
+                
+                var errorMsg = 'Lỗi kết nối: ' + error;
+                if (xhr.status === 0) {
+                    errorMsg = 'Không thể kết nối đến server. Vui lòng kiểm tra lại.';
+                } else if (xhr.status === 404) {
+                    errorMsg = 'Không tìm thấy servlet. Vui lòng kiểm tra URL.';
+                } else if (xhr.status === 500) {
+                    errorMsg = 'Lỗi server. Vui lòng kiểm tra log.';
+                } else if (xhr.status === 401) {
+                    errorMsg = 'Chưa đăng nhập. Vui lòng đăng nhập lại.';
+                }
+                
+                try {
+                    if (xhr.responseText) {
+                        var response = JSON.parse(xhr.responseText);
+                        if (response && response.message) {
+                            errorMsg = response.message;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Parse error:', e);
+                    if (xhr.responseText) {
+                        errorMsg += ' (Response: ' + xhr.responseText.substring(0, 100) + ')';
+                    }
+                }
+                
+                $status.text('✗ ' + errorMsg).addClass('error');
+                $btn.prop('disabled', false);
+                $btn.text('💾 Lưu Tất Cả Điểm');
+            }
+        });
+    });
+    
+    // Highlight input khi giá trị thay đổi
+    $('.score-input').on('input', function() {
+        var $input = $(this);
+        var currentValue = parseInt($input.val()) || 0;
+        var originalValue = parseInt($input.data('original-score')) || 0;
+        
+        if (currentValue !== originalValue) {
+            $input.css('border-color', '#f59e0b');
+        } else {
+            $input.css('border-color', '#1f2937');
+        }
+    });
+});
+</script>
 </body>
 </html>

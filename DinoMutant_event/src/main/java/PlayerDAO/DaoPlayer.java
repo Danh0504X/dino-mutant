@@ -117,4 +117,70 @@ public class DaoPlayer implements IDaoPlayer {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public void batchUpdatePlayers(List<Player> players) {
+        if (players == null || players.isEmpty()) {
+            System.out.println("batchUpdatePlayers: No players to update");
+            return;
+        }
+        String sql = "UPDATE players SET score = ? WHERE id = ?";
+        Connection conn = null;
+        try {
+            conn = getConnection();
+            if (conn == null) {
+                throw new SQLException("Cannot get database connection");
+            }
+            
+            // Tắt auto-commit để đảm bảo transaction
+            boolean originalAutoCommit = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+            
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                for (Player player : players) {
+                    if (player == null || player.getId() <= 0) {
+                        System.out.println("Skipping invalid player: " + player);
+                        continue;
+                    }
+                    stmt.setInt(1, player.getScore());
+                    stmt.setInt(2, player.getId());
+                    stmt.addBatch();
+                    System.out.println("Added to batch: Player ID=" + player.getId() + ", Score=" + player.getScore());
+                }
+                int[] results = stmt.executeBatch();
+                System.out.println("Batch update executed. Affected rows: " + java.util.Arrays.toString(results));
+                
+                // Commit transaction
+                conn.commit();
+                System.out.println("Transaction committed successfully");
+            } catch (SQLException e) {
+                // Rollback nếu có lỗi
+                if (conn != null && !conn.isClosed()) {
+                    conn.rollback();
+                    System.err.println("Transaction rolled back due to error: " + e.getMessage());
+                }
+                throw e;
+            } finally {
+                // Khôi phục auto-commit
+                if (conn != null && !conn.isClosed()) {
+                    conn.setAutoCommit(originalAutoCommit);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("Batch update failed: " + e.getMessage());
+            throw new RuntimeException("Batch update failed: " + e.getMessage(), e);
+        } finally {
+            // Đảm bảo đóng connection
+            if (conn != null) {
+                try {
+                    if (!conn.isClosed()) {
+                        conn.close();
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 }
