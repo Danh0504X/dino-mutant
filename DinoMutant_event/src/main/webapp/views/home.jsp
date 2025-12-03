@@ -59,6 +59,7 @@
         <div class="brand"><span class="dot"></span> Guild Leaderboard</div>
         <div>
             <span style="margin-right:10px;">TopVN: <strong>${totalScore}</strong> (base + members)</span>
+            <a class="btn" href="lottery" style="background: linear-gradient(135deg, var(--gold), #f59e0b); margin-right: 8px;">🎰 Quay thưởng</a>
             <a class="btn" href="login">Admin Login</a>
             <a class="btn" href="views/request.jsp">Request Score Change</a>
         </div>

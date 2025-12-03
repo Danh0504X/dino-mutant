@@ -1,14 +1,16 @@
+model\LotteryWinner.class
 controller\RequestActionServlet.class
 AdminDAO\IAdminDAO.class
 dinomutant\JakartaRestConfiguration.class
 model\HistoryUpdate.class
+controller\LotteryServlet.class
 SettingsDAO\ISettingsDAO.class
 AdminDAO\AdminDAO.class
 PlayerDAO\IDaoPlayer.class
 controller\SubmitScoreRequestServlet.class
+LotteryDAO\LotteryDAO.class
 dinomutant\resources\JakartaEE10Resource.class
 controller\AdminServlet.class
-DAO\DBConnection.class
 controller\LoginServlet.class
 HistoryDAO\HistoryUpdateDAO.class
 HistoryDAO\IHistoryUpdateDAO.class
